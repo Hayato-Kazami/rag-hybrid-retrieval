@@ -1,4 +1,4 @@
-# rag-mini
+# rag-hybrid-retrieval
 
 一个**能跑通、能评测**的最小 RAG 闭环：条款级切分 → BGE-M3 向量 + BM25 双路召回 → RRF 融合 → cross-encoder 重排 → 引用溯源 → 检索评测。
 
