@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rag-mini"
+version = "0.1.0"
+description = "最小可评测的 RAG 闭环：条款切分 / 混合召回 / 重排 / 引用溯源 / 检索评测"
+requires-python = ">=3.10"
+dependencies = [
+    "sentence-transformers>=3.0.0",
+    "torch>=2.0.0",
+    "numpy>=1.24",
+    "jieba>=0.42.1",
+    "scikit-learn>=1.3",
+]
+
+[project.optional-dependencies]
+llm = ["openai>=1.30.0"]
+dev = ["pytest>=7.0"]
+
+[project.scripts]
+ragmini = "ragmini.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
