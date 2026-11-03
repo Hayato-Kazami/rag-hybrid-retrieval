@@ -16,7 +16,7 @@ from __future__ import annotations
 import argparse
 
 from ragmini.config import Settings
-from ragmini.evaluate import load_qa
+from ragmini.evaluate import REJECT_WEIGHT, load_qa, relevance_scores
 from ragmini.retrieve import Retriever
 
 
@@ -49,16 +49,7 @@ def main() -> int:
     qa = load_qa(cfg.eval_file)
     retriever = Retriever(cfg=cfg).build()
 
-    pos: list[float] = []
-    neg: list[float] = []
-    for item in qa:
-        result = retriever.search(item.question, mode=mode, top_k=10)
-        if args.signal == "dense":
-            score = result.dense_top1
-        else:
-            score = result.rerank_top1 if result.rerank_top1 is not None else 0.0
-        (pos if item.answerable else neg).append(score)
-
+    pos, neg = relevance_scores(retriever, qa, mode)
     print(f"信号={args.signal}  mode={mode}")
     print(f"可答   n={len(pos)}  min={min(pos):.3f} p10={percentile(pos,0.1):.3f} "
           f"median={percentile(pos,0.5):.3f} max={max(pos):.3f}")
@@ -73,7 +64,7 @@ def main() -> int:
         threshold = float(raw)
         false_reject = sum(1 for score in pos if score < threshold) / max(len(pos), 1)
         reject_acc = sum(1 for score in neg if score < threshold) / max(len(neg), 1)
-        balanced = (1 - false_reject) * 0.6 + reject_acc * 0.4
+        balanced = (1 - false_reject) * (1 - REJECT_WEIGHT) + reject_acc * REJECT_WEIGHT
         print(f"{threshold:>6.2f}{false_reject:>9.3f}{reject_acc:>9.3f}{balanced:>9.3f}")
         if best is None or balanced > best[1]:
             best = (threshold, balanced)
@@ -82,8 +73,13 @@ def main() -> int:
         env_name = (
             "RAGMINI_ANSWER_THRESHOLD" if args.signal == "dense" else "RAGMINI_RERANK_THRESHOLD"
         )
-        print(f"\n建议阈值：{best[0]:.2f}（误拒权重 0.6 / 拒答权重 0.4）")
+        print(f"\n建议阈值：{best[0]:.2f}"
+              f"（误拒权重 {1 - REJECT_WEIGHT:.1f} / 拒答权重 {REJECT_WEIGHT:.1f}）")
         print(f"写进 .env：{env_name}={best[0]:.2f}")
+        print(
+            "\n⚠️ 本脚本用的是全量评测集（in-sample）。"
+            "要报样本外指标，用：python -m ragmini.cli eval --cv"
+        )
     return 0
 
 

@@ -14,7 +14,7 @@ from pathlib import Path
 
 from .answer import answer as build_answer
 from .config import settings
-from .evaluate import evaluate_modes, load_qa
+from .evaluate import cross_validate_thresholds, evaluate_modes, load_qa
 from .retrieve import Retriever
 
 
@@ -42,9 +42,35 @@ def cmd_eval(args: argparse.Namespace) -> int:
     retriever = Retriever().build()
     qa = load_qa(settings.eval_file)
     modes = [mode.strip() for mode in args.modes.split(",") if mode.strip()]
-    report = evaluate_modes(retriever, qa, modes=modes, top_k=args.top_k)
 
-    print(f"\nembedder={report['embedder']}  reranker={report['reranker']}  n={report['n_questions']}")
+    protocol = "in-sample"
+    fold_thresholds: dict[str, dict] = {}
+    if args.cv:
+        protocol = "2-fold-cross-validated"
+        print("\n交叉标定：每一折的阈值只用另一折选（每条问题都是样本外判定）")
+        for mode in modes:
+            folds = cross_validate_thresholds(retriever, qa, mode, top_k=args.top_k)
+            if not folds:
+                continue
+            fold_thresholds[mode] = folds
+            detail = "  ".join(
+                f"{fold}:{info['threshold']:.2f}（标定于 {'/'.join(info['calibrated_on'])}，"
+                f"误拒 {info['false_reject']:.2f} / 拒答 {info['reject_accuracy']:.2f}）"
+                for fold, info in folds.items()
+            )
+            print(f"  {mode:<16}{detail}")
+
+    report = evaluate_modes(
+        retriever,
+        qa,
+        modes=modes,
+        top_k=args.top_k,
+        protocol=protocol,
+        fold_thresholds=fold_thresholds or None,
+    )
+
+    print(f"\nembedder={report['embedder']}  reranker={report['reranker']}  "
+          f"n={report['n_questions']}  protocol={report['eval_protocol']}")
     header = f"{'mode':<22}{'Hit@1':>8}{'Hit@5':>8}{'MRR':>8}{'nDCG@5':>9}{'拒答准':>8}{'误拒':>8}"
     print(header)
     print("-" * len(header))
@@ -92,6 +118,11 @@ def build_parser() -> argparse.ArgumentParser:
     ev = sub.add_parser("eval", help="跑评测集")
     ev.add_argument("--modes", default="dense,hybrid,hybrid+rerank")
     ev.add_argument("--top-k", type=int, default=10)
+    ev.add_argument(
+        "--cv",
+        action="store_true",
+        help="两折交叉标定：阈值只在另一折上选，指标是样本外结果",
+    )
     ev.add_argument("--out", default="results/eval_report.json")
     ev.set_defaults(func=cmd_eval)
 
