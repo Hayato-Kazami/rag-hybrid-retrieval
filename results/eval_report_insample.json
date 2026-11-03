@@ -1,0 +1,151 @@
+{
+  "embedder": "bge-m3",
+  "reranker": "cross-encoder(bge-reranker-large)",
+  "n_questions": 68,
+  "eval_protocol": "in-sample",
+  "reports": [
+    {
+      "mode": "dense",
+      "top_k": 10,
+      "n_answerable": 50,
+      "n_unanswerable": 18,
+      "hit_rate@1": 0.96,
+      "hit_rate@5": 1.0,
+      "mrr@10": 0.9767,
+      "ndcg@5": 0.9826,
+      "reject_accuracy": 0.6667,
+      "false_reject_rate": 0.02,
+      "by_type": {
+        "definition": {
+          "total": 4,
+          "hit_rate@5": 1.0
+        },
+        "enum": {
+          "total": 1,
+          "hit_rate@5": 1.0
+        },
+        "numeric": {
+          "total": 37,
+          "hit_rate@5": 1.0
+        },
+        "paraphrase": {
+          "total": 8,
+          "hit_rate@5": 1.0
+        }
+      },
+      "failures": []
+    },
+    {
+      "mode": "sparse",
+      "top_k": 10,
+      "n_answerable": 50,
+      "n_unanswerable": 18,
+      "hit_rate@1": 0.9,
+      "hit_rate@5": 0.96,
+      "mrr@10": 0.93,
+      "ndcg@5": 0.9379,
+      "reject_accuracy": 0.0,
+      "false_reject_rate": 0.0,
+      "by_type": {
+        "definition": {
+          "total": 4,
+          "hit_rate@5": 1.0
+        },
+        "enum": {
+          "total": 1,
+          "hit_rate@5": 1.0
+        },
+        "numeric": {
+          "total": 37,
+          "hit_rate@5": 1.0
+        },
+        "paraphrase": {
+          "total": 8,
+          "hit_rate@5": 0.75
+        }
+      },
+      "failures": [
+        {
+          "qid": "q09",
+          "question": "怎么防止模型误触写操作？",
+          "gold": [
+            "demo-01-dispatch#第13条"
+          ],
+          "top1": "demo-01-dispatch#第3条",
+          "dense_top1": 0.5652
+        },
+        {
+          "qid": "q11",
+          "question": "会话断了以后怎么接着做？",
+          "gold": [
+            "demo-01-dispatch#第15条"
+          ],
+          "top1": "demo-02-hazmat#第23条",
+          "dense_top1": 0.7231
+        }
+      ]
+    },
+    {
+      "mode": "hybrid",
+      "top_k": 10,
+      "n_answerable": 50,
+      "n_unanswerable": 18,
+      "hit_rate@1": 0.98,
+      "hit_rate@5": 0.98,
+      "mrr@10": 0.9833,
+      "ndcg@5": 0.98,
+      "reject_accuracy": 0.6667,
+      "false_reject_rate": 0.02,
+      "by_type": {
+        "definition": {
+          "total": 4,
+          "hit_rate@5": 1.0
+        },
+        "enum": {
+          "total": 1,
+          "hit_rate@5": 1.0
+        },
+        "numeric": {
+          "total": 37,
+          "hit_rate@5": 1.0
+        },
+        "paraphrase": {
+          "total": 8,
+          "hit_rate@5": 0.875
+        }
+      },
+      "failures": []
+    },
+    {
+      "mode": "hybrid+rerank",
+      "top_k": 10,
+      "n_answerable": 50,
+      "n_unanswerable": 18,
+      "hit_rate@1": 0.98,
+      "hit_rate@5": 1.0,
+      "mrr@10": 0.9867,
+      "ndcg@5": 0.99,
+      "reject_accuracy": 0.9444,
+      "false_reject_rate": 0.02,
+      "by_type": {
+        "definition": {
+          "total": 4,
+          "hit_rate@5": 1.0
+        },
+        "enum": {
+          "total": 1,
+          "hit_rate@5": 1.0
+        },
+        "numeric": {
+          "total": 37,
+          "hit_rate@5": 1.0
+        },
+        "paraphrase": {
+          "total": 8,
+          "hit_rate@5": 1.0
+        }
+      },
+      "failures": []
+    }
+  ]
+}

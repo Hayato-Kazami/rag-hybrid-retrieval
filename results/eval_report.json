@@ -2,6 +2,7 @@
   "embedder": "bge-m3",
   "reranker": "cross-encoder(bge-reranker-large)",
   "n_questions": 68,
+  "eval_protocol": "2-fold-cross-validated",
   "reports": [
     {
       "mode": "dense",
@@ -12,8 +13,8 @@
       "hit_rate@5": 1.0,
       "mrr@10": 0.9767,
       "ndcg@5": 0.9826,
-      "reject_accuracy": 0.6667,
-      "false_reject_rate": 0.02,
+      "reject_accuracy": 0.8889,
+      "false_reject_rate": 0.04,
       "by_type": {
         "definition": {
           "total": 4,
@@ -32,7 +33,33 @@
           "hit_rate@5": 1.0
         }
       },
-      "failures": []
+      "failures": [],
+      "fold_thresholds": {
+        "A": {
+          "dense": 0.62,
+          "rerank": 0.62,
+          "calibrated_on": [
+            "B"
+          ],
+          "threshold": 0.62,
+          "balanced": 0.975,
+          "false_reject": 0.0417,
+          "reject_accuracy": 1.0,
+          "n_calibration": 33
+        },
+        "B": {
+          "dense": 0.65,
+          "rerank": 0.65,
+          "calibrated_on": [
+            "A"
+          ],
+          "threshold": 0.65,
+          "balanced": 0.9556,
+          "false_reject": 0.0,
+          "reject_accuracy": 0.8889,
+          "n_calibration": 35
+        }
+      }
     },
     {
       "mode": "sparse",
@@ -93,8 +120,8 @@
       "hit_rate@5": 0.98,
       "mrr@10": 0.9833,
       "ndcg@5": 0.98,
-      "reject_accuracy": 0.6667,
-      "false_reject_rate": 0.02,
+      "reject_accuracy": 0.8889,
+      "false_reject_rate": 0.04,
       "by_type": {
         "definition": {
           "total": 4,
@@ -113,7 +140,33 @@
           "hit_rate@5": 0.875
         }
       },
-      "failures": []
+      "failures": [],
+      "fold_thresholds": {
+        "A": {
+          "dense": 0.62,
+          "rerank": 0.62,
+          "calibrated_on": [
+            "B"
+          ],
+          "threshold": 0.62,
+          "balanced": 0.975,
+          "false_reject": 0.0417,
+          "reject_accuracy": 1.0,
+          "n_calibration": 33
+        },
+        "B": {
+          "dense": 0.65,
+          "rerank": 0.65,
+          "calibrated_on": [
+            "A"
+          ],
+          "threshold": 0.65,
+          "balanced": 0.9556,
+          "false_reject": 0.0,
+          "reject_accuracy": 0.8889,
+          "n_calibration": 35
+        }
+      }
     },
     {
       "mode": "hybrid+rerank",
@@ -124,7 +177,7 @@
       "hit_rate@5": 1.0,
       "mrr@10": 0.9867,
       "ndcg@5": 0.99,
-      "reject_accuracy": 0.9444,
+      "reject_accuracy": 0.8889,
       "false_reject_rate": 0.02,
       "by_type": {
         "definition": {
@@ -144,7 +197,33 @@
           "hit_rate@5": 1.0
         }
       },
-      "failures": []
+      "failures": [],
+      "fold_thresholds": {
+        "A": {
+          "dense": 0.7,
+          "rerank": 0.7,
+          "calibrated_on": [
+            "B"
+          ],
+          "threshold": 0.7,
+          "balanced": 0.975,
+          "false_reject": 0.0417,
+          "reject_accuracy": 1.0,
+          "n_calibration": 33
+        },
+        "B": {
+          "dense": 0.5,
+          "rerank": 0.5,
+          "calibrated_on": [
+            "A"
+          ],
+          "threshold": 0.5,
+          "balanced": 0.9556,
+          "false_reject": 0.0,
+          "reject_accuracy": 0.8889,
+          "n_calibration": 35
+        }
+      }
     }
   ]
 }
