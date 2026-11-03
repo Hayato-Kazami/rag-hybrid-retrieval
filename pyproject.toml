@@ -6,6 +6,8 @@ build-backend = "setuptools.build_meta"
 name = "rag-hybrid-retrieval"
 version = "0.1.0"
 description = "最小可评测的 RAG 闭环：条款切分 / 混合召回 / 重排 / 引用溯源 / 检索评测"
+license = "MIT"
+license-files = ["LICENSE"]
 requires-python = ">=3.10"
 dependencies = [
     "sentence-transformers>=3.0.0",
