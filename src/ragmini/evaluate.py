@@ -62,6 +62,21 @@ def _ndcg_at_k(hits, gold: list[str], k: int) -> float:
     return dcg  # 只有一个相关文档，IDCG = 1
 
 
+def _recall_at_k(hits, gold: list[str], k: int) -> float:
+    """前 k 条覆盖了多少比例的正确文档。
+
+    与 Hit@k 的差别只在 gold 多于 1 条时才显现：
+    - gold 恒为 1 条时，本函数返回值必然是 0 或 1，与 Hit@k 完全相同；
+    - gold 有 n 条时，命中 3 条就是 3/n，而 Hit@k 只要命中 1 条就算满分。
+    所以这个指标的价值取决于评测集里有多少"多答案题"，见 evaluate() 返回的
+    gold_size_dist —— 如果全是 1，加它只是多一个假指标。
+    """
+    if not gold:
+        return 0.0
+    got = {h.parent_id for h in hits[:k] if h.parent_id in gold}
+    return len(got) / len(gold)
+
+
 def evaluate(
     retriever: Retriever,
     qa: list[QA],
@@ -72,6 +87,8 @@ def evaluate(
     hit1 = hit5 = 0
     mrr_sum = 0.0
     ndcg_sum = 0.0
+    recall5_sum = 0.0
+    gold_size_dist: dict[int, int] = {}
     answerable_total = reject_total = reject_ok = false_reject = 0
     per_type: dict[str, dict[str, int]] = {}
     failures: list[dict] = []
@@ -103,6 +120,10 @@ def evaluate(
         if result.rejected:
             false_reject += 1
 
+        gold_size_dist[len(item.gold)] = gold_size_dist.get(len(item.gold), 0) + 1
+        recall5 = _recall_at_k(hits, item.gold, 5)
+        recall5_sum += recall5
+
         rank = _first_hit_rank(hits, item.gold)
         if rank is not None:
             if rank == 1:
@@ -122,15 +143,19 @@ def evaluate(
             )
         ndcg_sum += _ndcg_at_k(hits, item.gold, 5)
 
-        bucket = per_type.setdefault(item.qtype, {"total": 0, "hit5": 0})
+        bucket = per_type.setdefault(item.qtype, {"total": 0, "hit5": 0, "recall5": 0.0})
         bucket["total"] += 1
         if rank is not None and rank <= 5:
             bucket["hit5"] += 1
+        bucket["recall5"] += recall5
 
     retriever.cfg.answer_threshold = base_answer
     retriever.cfg.rerank_threshold = base_rerank
 
     n = max(answerable_total, 1)
+    # 所有 gold 都 ≤ 1 条时，Recall@5 与 Hit@5 恒等：两个数字不是互相印证的独立证据，
+    # 报出来会让人以为做了两项校验。置这个标志，避免把同一件事数两遍。
+    recall_equals_hit = all(size <= 1 for size in gold_size_dist)
     return {
         "mode": mode,
         "top_k": top_k,
@@ -138,6 +163,9 @@ def evaluate(
         "n_unanswerable": reject_total,
         "hit_rate@1": round(hit1 / n, 4),
         "hit_rate@5": round(hit5 / n, 4),
+        "recall@5": round(recall5_sum / n, 4),
+        "recall_equals_hit": recall_equals_hit,
+        "gold_size_dist": dict(sorted(gold_size_dist.items())),
         f"mrr@{top_k}": round(mrr_sum / n, 4),
         "ndcg@5": round(ndcg_sum / n, 4),
         "reject_accuracy": round(reject_ok / max(reject_total, 1), 4),
@@ -146,6 +174,7 @@ def evaluate(
             qtype: {
                 "total": stats["total"],
                 "hit_rate@5": round(stats["hit5"] / stats["total"], 4),
+                "recall@5": round(stats["recall5"] / stats["total"], 4),
             }
             for qtype, stats in sorted(per_type.items())
         },

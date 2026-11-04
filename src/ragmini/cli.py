@@ -84,6 +84,12 @@ def cmd_eval(args: argparse.Namespace) -> int:
     out_path = Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+    if report["reports"] and report["reports"][0].get("recall_equals_hit"):
+        print(
+            "\n注：本评测集每题 gold 均 ≤ 1 条，Recall@5 与 Hit@5 恒等"
+            "（报告里两个字段数值相同，不是两项独立校验）。"
+            "要真正测覆盖率，需补「多 gold」的清单类题。"
+        )
     print(f"\n报告已写入 {out_path}")
     return 0
 
